@@ -1,5 +1,5 @@
 
-package com.softdesign.gsontets.Network.structure;
+package com.softdesign.gsontets.Classes;
 
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;

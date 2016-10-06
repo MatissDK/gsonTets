@@ -1,6 +1,6 @@
 package com.softdesign.gsontets.Network;
 
-import com.softdesign.gsontets.Network.structure.MainWeather;
+import com.softdesign.gsontets.Classes.Super;
 
 import retrofit2.Call;
 
@@ -22,7 +22,7 @@ public class DataManager {
         return INSTANCE;
     }
 
-    public Call<MainWeather> getForcasts (){
+    public Call<Super> getForcasts (){
         return mRestService.getForcasts();
     }
 }
