@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         mListView = (ListView) findViewById(R.id.listView_forecast);
         mDataManager = DataManager.getInstance();
         getData();
+
     }
 
     private void getData() {
