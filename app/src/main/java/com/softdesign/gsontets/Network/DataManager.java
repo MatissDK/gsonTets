@@ -13,6 +13,7 @@ public class DataManager {
 
     public DataManager() {
         this.mRestService = ServiceGenerator.createService(RestService.class);
+        //this.city = city;
     }
 
     public static DataManager getInstance(){
@@ -22,7 +23,7 @@ public class DataManager {
         return INSTANCE;
     }
 
-    public Call<Super> getForcasts (){
-        return mRestService.getForcasts();
+    public Call<Super> getForcasts (String city){
+        return mRestService.getForcasts(city);
     }
 }
