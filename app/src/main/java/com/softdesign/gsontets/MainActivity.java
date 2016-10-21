@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.softdesign.gsontets.Classes.Super;
+import com.softdesign.gsontets.DB.DBconnection;
 import com.softdesign.gsontets.Network.DataManager;
 
 import java.util.ArrayList;
@@ -33,24 +34,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private List<com.softdesign.gsontets.Classes.List> mListOfList = new ArrayList<>();
     private List<String> mListString = new ArrayList<>();
 
+    private String mUnitType;
+    private String mCity;
+
+
+    private DBconnection myDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mListView = (ListView) findViewById(R.id.listView_forecast);
+        myDB = new DBconnection(getApplicationContext());
+
+        boolean pka = myDB.insertData("divi name", "divi surname", 11);
+        if (pka == true) {
+            Toast.makeText(getApplicationContext(), "Yeah", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "NOOOO", Toast.LENGTH_SHORT).show();
+        }
+
+       /* mListView = (ListView) findViewById(R.id.listView_forecast);
         mDataManager = DataManager.getInstance();
         mListView.setOnItemClickListener(this);
         getData();
-        Log.d(Constants.TAG,"create");
+        Log.d(Constants.TAG, "create");*/
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(Constants.TAG,"destroy");
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -78,15 +88,24 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
 
-    private void getData() {
+    private void getSharedPreferences() {
 
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(getApplicationContext());
 
-        String city = prefs.getString(getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default));
+        mUnitType = prefs.getString(
+                getString(R.string.pref_units_key),
+                getString(R.string.pref_units_metric));
 
-        Call<Super> call = mDataManager.getForcasts(city);
+        mCity = prefs.getString(
+                getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
+    }
+
+
+    private void getData() {
+        getSharedPreferences();
+        Call<Super> call = mDataManager.getForcasts(mCity);
         call.enqueue(new Callback<Super>() {
             @Override
             public void onResponse(Call<Super> call, Response<Super> response) {
@@ -131,15 +150,37 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
 
+    /**
+     * Prepare the weather high/lows for presentation.
+     */
+    private String formatHighLows(double high, double low, String unitType) {
+
+        if (unitType.equals(getString(R.string.pref_units_imperial))) {
+            high = (high * 1.8) + 32;
+            low = (low * 1.8) + 32;
+        } else if (!unitType.equals(getString(R.string.pref_units_metric))) {
+            Log.d(Constants.TAG, "Unit type not found: " + unitType);
+        }
+
+        // For presentation, assume the user doesn't care about tenths of a degree.
+        long roundedHigh = Math.round(high);
+        long roundedLow = Math.round(low);
+
+        String highLowStr = roundedHigh + "/" + roundedLow;
+        return highLowStr;
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         TextView mText = (TextView) view;
         for (com.softdesign.gsontets.Classes.List obj : mListOfList) {
             if (obj.getDtTxt().contains(mText.getText() + getString(R.string.time))) {
-                double rain = obj.getMain().getPressure();
-                Toast.makeText(getApplicationContext(), "Pressure: " + rain, Toast.LENGTH_SHORT).show();
+                double temp_min = obj.getMain().getTempMin();
+                double temp_max = obj.getMain().getTempMax();
+                String toData = formatHighLows(temp_max, temp_min, mUnitType);
+
                 Intent intent = new Intent(getApplicationContext(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, "My rain pressure: " + rain);
+                        .putExtra(Intent.EXTRA_TEXT, toData);
                 startActivity(intent);
 
             }
